@@ -5,6 +5,10 @@ module.exports = {
   context: path.resolve(__dirname, "./"),
   target: "webworker",
   mode: "production",
+  output: {
+    filename: "main.js",
+    path: path.resolve(__dirname, "."),
+  },
   plugins: [
     new webpack.DefinePlugin({
       CUSTOM_DOMAIN: JSON.stringify(process.env.CUSTOM_DOMAIN || "libcuda.so"),

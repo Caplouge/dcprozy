@@ -17,5 +17,5 @@
   },
   "license": "MIT",
   "main": "src/index.js",
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "yarn@4.5.0"
 }

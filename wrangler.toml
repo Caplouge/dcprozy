@@ -1,5 +1,6 @@
 name = "dcproxy"
 compatibility_date = "2023-12-01"
+main = "dist/main.js"
 
 [dev]
 ip = "0.0.0.0"

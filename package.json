@@ -12,7 +12,7 @@
   },
   "scripts": {
     "format": "prettier --write '**/*.{js,css,json,md}'",
-    "build": "webpack",
+    "build": "npx webpack",
     "dev": "npx wrangler dev src/index.js --env dev"
   },
   "license": "MIT",

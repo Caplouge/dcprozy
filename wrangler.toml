@@ -1,4 +1,4 @@
-name = "dcprozy"
+name = "dcproxy"
 compatibility_date = "2023-12-01"
 
 [dev]

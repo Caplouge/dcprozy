@@ -113,7 +113,7 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
 }
 
 function parseAuthenticate(authenticateStr) {
-  const re = /(?<=\\=\")(?:\\\\.|[^"\\\\])*(?=\")/g;
+  const re = /"([^"]+)"/g;
   const matches = authenticateStr.match(re);
   if (matches == null || matches.length < 2) {
     throw new Error(`invalid Www-Authenticate Header: ${authenticateStr}`);

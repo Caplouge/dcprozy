@@ -2,10 +2,6 @@ name = "dcproxy"
 compatibility_date = "2023-12-01"
 main = "main.js"
 
-routes = [
-  { pattern = "dcproxy.caplouge.workers.dev/*" },
-]
-
 [dev]
 ip = "0.0.0.0"
 port = 8787

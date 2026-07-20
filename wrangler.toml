@@ -2,13 +2,18 @@ name = "dcproxy"
 compatibility_date = "2023-12-01"
 main = "main.js"
 
+# Root-level routes — these apply to the deployed Worker
+routes = [
+  { pattern = "dcproxy.caplouge.workers.dev/*" },
+]
+
 [dev]
 ip = "0.0.0.0"
 port = 8787
 local_protocol = "http"
 
 [env.vars]
-CUSTOM_DOMAIN = "libcuda.so"
+CUSTOM_DOMAIN = "dcproxy.caplouge.workers.dev"
 
 [env.dev.vars]
 MODE = "debug"
@@ -17,9 +22,6 @@ CUSTOM_DOMAIN = "exmaple.com"
 
 [env.production]
 name = "dcprozy"
-routes = [
-  { pattern = "dcproxy.caplouge.workers.dev/*" },
-]
 
 [env.production.vars]
 MODE = "production"

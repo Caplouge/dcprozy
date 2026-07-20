@@ -57,6 +57,7 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
         method: "GET",
         headers: headers,
         redirect: "manual",
+        signal: AbortSignal.timeout(10000),
       });
       if (resp.status == 307) {
         const location = resp.headers.get("Location");
@@ -65,6 +66,7 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
             method: "GET",
             headers: headers,
             redirect: "follow",
+            signal: AbortSignal.timeout(10000),
           });
           const wwwAuth = tokenResp.headers.get("WWW-Authenticate");
           if (wwwAuth) {
@@ -80,6 +82,7 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
         method: "GET",
         headers: headers,
         redirect: "follow",
+        signal: AbortSignal.timeout(10000),
       });
     }
     if (resp.status === 401) {

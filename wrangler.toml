@@ -9,18 +9,3 @@ local_protocol = "http"
 
 [env.production]
 name = "dcprozy"
-
-[[env.production.bindings]]
-name = "CUSTOM_DOMAIN"
-type = "plain_text"
-text = "dcproxy.caplouge.workers.dev"
-
-[[env.production.bindings]]
-name = "MODE"
-type = "plain_text"
-text = "production"
-
-[[env.production.bindings]]
-name = "TARGET_UPSTREAM"
-type = "plain_text"
-text = ""

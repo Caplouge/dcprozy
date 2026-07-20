@@ -1,4 +1,7 @@
 const dockerHub = "https://registry-1.docker.io";
+const CUSTOM_DOMAIN = "dcproxy.caplouge.workers.dev";
+const MODE = "production";
+const TARGET_UPSTREAM = "";
 
 function getRoutes(CUSTOM_DOMAIN) {
   return {
@@ -145,18 +148,8 @@ function responseUnauthorized(url) {
   });
 }
 
-module.exports = {
-  async fetch(request, env) {
-    try {
-      const CUSTOM_DOMAIN = env.CUSTOM_DOMAIN || "";
-      const MODE = env.MODE || "production";
-      const TARGET_UPSTREAM = env.TARGET_UPSTREAM || "";
-      const routes = getRoutes(CUSTOM_DOMAIN);
-      return await handleRequest(request, routes, MODE, TARGET_UPSTREAM);
-    } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), {
-        status: 500,
-      });
-    }
-  },
-};
+addEventListener("fetch", (event) => {
+  event.passThroughOnException();
+  const routes = getRoutes(CUSTOM_DOMAIN);
+  event.respondWith(handleRequest(event.request, routes, MODE, TARGET_UPSTREAM));
+});

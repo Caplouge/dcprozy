@@ -2,7 +2,6 @@ name = "dcproxy"
 compatibility_date = "2023-12-01"
 main = "main.js"
 
-# Root-level routes — these apply to the deployed Worker
 routes = [
   { pattern = "dcproxy.caplouge.workers.dev/*" },
 ]
@@ -12,26 +11,20 @@ ip = "0.0.0.0"
 port = 8787
 local_protocol = "http"
 
-[env.vars]
-CUSTOM_DOMAIN = "dcproxy.caplouge.workers.dev"
-
-[env.dev.vars]
-MODE = "debug"
-TARGET_UPSTREAM = "https://registry-1.docker.io"
-CUSTOM_DOMAIN = "exmaple.com"
-
 [env.production]
 name = "dcprozy"
 
-[env.production.vars]
-MODE = "production"
-CUSTOM_DOMAIN = "dcproxy.caplouge.workers.dev"
-TARGET_UPSTREAM = ""
+[[env.production.bindings]]
+name = "CUSTOM_DOMAIN"
+type = "plain_text"
+text = "dcproxy.caplouge.workers.dev"
 
-[env.staging]
-name = "cloudflare-docker-proxy-staging"
-# route = { pattern = "docker-staging.libcuda.so", custom_domain = true }
+[[env.production.bindings]]
+name = "MODE"
+type = "plain_text"
+text = "production"
 
-[env.staging.vars]
-MODE = "staging"
-TARGET_UPSTREAM = ""
+[[env.production.bindings]]
+name = "TARGET_UPSTREAM"
+type = "plain_text"
+text = ""

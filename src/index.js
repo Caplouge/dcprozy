@@ -1,12 +1,7 @@
-addEventListener("fetch", (event) => {
-  event.passThroughOnException();
-  const env = event.env;
-  const CUSTOM_DOMAIN = env.CUSTOM_DOMAIN || "";
-  const MODE = env.MODE || "production";
-  const TARGET_UPSTREAM = env.TARGET_UPSTREAM || "";
+const dockerHub = "https://registry-1.docker.io";
 
-  const dockerHub = "https://registry-1.docker.io";
-  const routes = {
+function getRoutes(CUSTOM_DOMAIN) {
+  return {
     ["docker." + CUSTOM_DOMAIN]: dockerHub,
     [CUSTOM_DOMAIN]: dockerHub,
     ["quay." + CUSTOM_DOMAIN]: "https://quay.io",
@@ -18,9 +13,7 @@ addEventListener("fetch", (event) => {
     ["ecr." + CUSTOM_DOMAIN]: "https://public.ecr.aws",
     ["docker-staging." + CUSTOM_DOMAIN]: dockerHub,
   };
-
-  event.respondWith(handleRequest(event.request, routes, MODE, TARGET_UPSTREAM));
-});
+}
 
 function routeByHosts(host, routes, MODE, TARGET_UPSTREAM) {
   if (host in routes) {
@@ -40,15 +33,11 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
   const upstream = routeByHosts(url.hostname, routes, MODE, TARGET_UPSTREAM);
   if (upstream === "") {
     return new Response(
-      JSON.stringify({
-        routes: routes,
-      }),
-      {
-        status: 404,
-      }
+      JSON.stringify({ routes: routes }),
+      { status: 404 }
     );
   }
-  const isDockerHub = upstream == "https://registry-1.docker.io";
+  const isDockerHub = upstream == dockerHub;
   const authorization = request.headers.get("Authorization");
   if (url.pathname == "/v2/") {
     const newUrl = new URL(upstream + "/v2/");
@@ -56,7 +45,6 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
     if (authorization) {
       headers.set("Authorization", authorization);
     }
-    // check if need to authenticate
     const resp = await fetch(newUrl.toString(), {
       method: "GET",
       headers: headers,
@@ -67,7 +55,6 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
     }
     return resp;
   }
-  // get token
   if (url.pathname == "/v2/auth") {
     const newUrl = new URL(upstream + "/v2/");
     const resp = await fetch(newUrl.toString(), {
@@ -83,8 +70,6 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
     }
     const wwwAuthenticate = parseAuthenticate(authenticateStr);
     let scope = url.searchParams.get("scope");
-    // autocomplete repo part into scope for DockerHub library images
-    // Example: repository:busybox:pull => repository:library/busybox:pull
     if (scope && isDockerHub) {
       let scopeParts = scope.split(":");
       if (scopeParts.length == 3 && !scopeParts[1].includes("/")) {
@@ -94,8 +79,6 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
     }
     return await fetchToken(wwwAuthenticate, scope, authorization);
   }
-  // redirect for DockerHub library images
-  // Example: /v2/busybox/manifests/latest => /v2/library/busybox/manifests/latest
   if (isDockerHub) {
     const pathParts = url.pathname.split("/");
     if (pathParts.length == 5) {
@@ -105,19 +88,16 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
       return Response.redirect(redirectUrl, 301);
     }
   }
-  // foward requests
   const newUrl = new URL(upstream + url.pathname);
   const newReq = new Request(newUrl, {
     method: request.method,
     headers: request.headers,
-    // don't follow redirect to dockerhub blob upstream
     redirect: isDockerHub ? "manual" : "follow",
   });
   const resp = await fetch(newReq);
   if (resp.status == 401) {
     return responseUnauthorized(url);
   }
-  // handle dockerhub blob redirect manually
   if (isDockerHub && resp.status == 307) {
     const location = new URL(resp.headers.get("Location"));
     const redirectResp = await fetch(location.toString(), {
@@ -130,8 +110,6 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
 }
 
 function parseAuthenticate(authenticateStr) {
-  // sample: Bearer realm="https://auth.ipv6.docker.com/token",service="registry.docker.io"
-  // match strings after =\" and before \"
   const re = /(?<=\\=\")(?:\\\\.|[^"\\\\])*(?=\")/g;
   const matches = authenticateStr.match(re);
   if (matches == null || matches.length < 2) {
@@ -166,3 +144,19 @@ function responseUnauthorized(url) {
     },
   });
 }
+
+module.exports = {
+  async fetch(request, env) {
+    try {
+      const CUSTOM_DOMAIN = env.CUSTOM_DOMAIN || "";
+      const MODE = env.MODE || "production";
+      const TARGET_UPSTREAM = env.TARGET_UPSTREAM || "";
+      const routes = getRoutes(CUSTOM_DOMAIN);
+      return await handleRequest(request, routes, MODE, TARGET_UPSTREAM);
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+      });
+    }
+  },
+};

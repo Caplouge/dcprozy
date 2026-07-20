@@ -48,11 +48,40 @@ async function handleRequest(request, routes, MODE, TARGET_UPSTREAM) {
     if (authorization) {
       headers.set("Authorization", authorization);
     }
-    const resp = await fetch(newUrl.toString(), {
-      method: "GET",
-      headers: headers,
-      redirect: "follow",
-    });
+    let resp;
+    if (isDockerHub) {
+      // Docker Hub /v2/ returns 307 redirect to auth.docker.io/token.
+      // Use manual redirect to capture the WWW-Authenticate header from the
+      // token endpoint response, so we can relay it back to the client.
+      resp = await fetch(newUrl.toString(), {
+        method: "GET",
+        headers: headers,
+        redirect: "manual",
+      });
+      if (resp.status == 307) {
+        const location = resp.headers.get("Location");
+        if (location) {
+          const tokenResp = await fetch(location, {
+            method: "GET",
+            headers: headers,
+            redirect: "follow",
+          });
+          const wwwAuth = tokenResp.headers.get("WWW-Authenticate");
+          if (wwwAuth) {
+            return new Response(tokenResp.body, {
+              status: 401,
+              headers: { "Www-Authenticate": wwwAuth },
+            });
+          }
+        }
+      }
+    } else {
+      resp = await fetch(newUrl.toString(), {
+        method: "GET",
+        headers: headers,
+        redirect: "follow",
+      });
+    }
     if (resp.status === 401) {
       return responseUnauthorized(url);
     }

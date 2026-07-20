@@ -1,5 +1,4 @@
 const path = require("path");
-const webpack = require("webpack");
 
 module.exports = {
   context: path.resolve(__dirname, "./"),
@@ -9,13 +8,6 @@ module.exports = {
     filename: "main.js",
     path: path.resolve(__dirname, "."),
   },
-  plugins: [
-    new webpack.DefinePlugin({
-      CUSTOM_DOMAIN: JSON.stringify(process.env.CUSTOM_DOMAIN || "libcuda.so"),
-      MODE: JSON.stringify(process.env.MODE || "production"),
-      TARGET_UPSTREAM: JSON.stringify(process.env.TARGET_UPSTREAM || ""),
-    }),
-  ],
   optimization: {
     usedExports: true,
   },

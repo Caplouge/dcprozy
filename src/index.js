@@ -5,9 +5,14 @@ addEventListener("fetch", (event) => {
 
 const dockerHub = "https://registry-1.docker.io";
 
+const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || "";
+const MODE = process.env.MODE || "production";
+const TARGET_UPSTREAM = process.env.TARGET_UPSTREAM || "";
+
 const routes = {
   // production
   ["docker." + CUSTOM_DOMAIN]: dockerHub,
+  [CUSTOM_DOMAIN]: dockerHub,
   ["quay." + CUSTOM_DOMAIN]: "https://quay.io",
   ["gcr." + CUSTOM_DOMAIN]: "https://gcr.io",
   ["k8s-gcr." + CUSTOM_DOMAIN]: "https://k8s.gcr.io",
@@ -129,8 +134,8 @@ async function handleRequest(request) {
 
 function parseAuthenticate(authenticateStr) {
   // sample: Bearer realm="https://auth.ipv6.docker.com/token",service="registry.docker.io"
-  // match strings after =" and before "
-  const re = /(?<=\=")(?:\\.|[^"\\])*(?=")/g;
+  // match strings after =\" and before \"
+  const re = /(?<=\\=\")(?:\\\\.|[^"\\\\])*(?=\")/g;
   const matches = authenticateStr.match(re);
   if (matches == null || matches.length < 2) {
     throw new Error(`invalid Www-Authenticate Header: ${authenticateStr}`);

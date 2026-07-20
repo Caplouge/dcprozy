@@ -118,10 +118,7 @@ function parseAuthenticate(authenticateStr) {
   if (matches == null || matches.length < 2) {
     throw new Error(`invalid Www-Authenticate Header: ${authenticateStr}`);
   }
-  return {
-    realm: matches[0],
-    service: matches[1],
-  };
+  return { realm: matches[0].slice(1, -1), service: matches[1].slice(1, -1) };
 }
 
 async function fetchToken(wwwAuthenticate, scope, authorization) {
